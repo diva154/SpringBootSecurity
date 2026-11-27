@@ -43,7 +43,6 @@ import org.springframework.security.core.GrantedAuthority;
 
         // Password for Spring Security
         @Column(nullable = false)
-        @NotBlank(message = "Password is required")
         private String password;
 
         // One user can have multiple roles

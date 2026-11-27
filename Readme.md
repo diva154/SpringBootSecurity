@@ -113,11 +113,11 @@ Spring Security verifies submitted passwords against the stored BCrypt hashes du
 
 The application includes:
 
-- Custom login page.
+- Login page.
 - Email-based authentication.
 - Password-based authentication.
 - Secure logout functionality.
-- Role-based post-login redirection (planned through a custom authentication success handler).
+- Role-based post-login redirection.
 
 ## Project Architecture
 
@@ -179,25 +179,16 @@ Before running the application, ensure you have installed:
 
 ### Installation and Setup
 
-1. Clone the repository from GitHub.
-2. Import the project into your preferred Java IDE.
-3. Configure MySQL database credentials in the application properties.
-4. Create the required MySQL database.
-5. Allow Spring Boot to initialize or update the database tables.
-6. Build the project using Maven.
-7. Run the Spring Boot application.
-8. Open the application in your browser using the configured localhost port,navigate to `http://localhost:8080/login`.
-   .
-
-## Future Improvements
-
-- Implement a custom authentication success handler for role-based redirection.
-- Add an admin dashboard.
-- Implement user registration.
-- Add pagination and sorting.
-- Improve frontend styling and responsiveness.
-- Add automated unit and integration testing.
-- Implement more granular permissions for administrative operations.
+1. Clone the repository from GitHub and import it into your preferred Java IDE (e.g., IntelliJ IDEA).
+2. Create the required MySQL database (matching `spring.datasource.url` in `application.properties`).
+3. Set the required environment variables in your IDE Run Configuration (`Run → Edit Configurations... → Environment variables`) or terminal:
+   - `DB_USERNAME` and `DB_PASSWORD` for MySQL access.
+   - `ADMIN_PASSWORD` and `USER_PASSWORD` for initial test account passwords (injected via `@Value` and BCrypt-encoded on startup).
+4. Build the project using Maven (`./mvnw clean install`) and allow Spring Boot to initialize/update the database tables.
+5. Run the Spring Boot application on local port `8080`.
+6. Open `http://localhost:8080/login` in your browser and log in with either the `ADMIN` account (redirects to `/admin`) or `USER` account (redirects to `/user`) using the passwords set in your environment variables.
+7. If logged in with ADMIN credentials, add a new user.
+   
 
 ## Learning Outcomes
 

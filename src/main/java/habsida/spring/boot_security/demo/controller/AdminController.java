@@ -1,25 +1,28 @@
 package habsida.spring.boot_security.demo.controller;
 
+import habsida.spring.boot_security.demo.model.Role;
 import habsida.spring.boot_security.demo.model.User;
 import habsida.spring.boot_security.demo.repository.RoleRepository;
+import habsida.spring.boot_security.demo.repository.UserRepository;
 import habsida.spring.boot_security.demo.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
     private final UserService userService;
-    private final RoleRepository roleRepository;
 
-    public AdminController(UserService userService,RoleRepository roleRepository) {
+    public AdminController(UserService userService){
         this.userService = userService;
-        this.roleRepository = roleRepository;
     }
 
     @GetMapping
@@ -31,7 +34,7 @@ public class AdminController {
     @GetMapping("/new")
     public String showCreateform(Model model) {
         model.addAttribute("user", new User());
-        model.addAttribute("allRoles",roleRepository.findAll());
+        model.addAttribute("allRoles",userService.getAllRoles());
         return "user-form";
     }
 
@@ -42,12 +45,26 @@ public class AdminController {
         @RequestParam(value = "roleIds", required = false) List<Long> roleIds,
         Model model) {
 
-        // Require password only when creating a new user
+        // 1.Require password only when creating a new user
         if (user.getId() == null && (user.getPassword() == null || user.getPassword().isBlank())) {
             bindingResult.rejectValue("password", "NotBlank", "Password is required");
         }
+        // 2. Check for duplicate email (for both create and edit)
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            userService.findByEmail(user.getEmail().trim()).ifPresent(existingUser -> {
+                if (user.getId() == null || !existingUser.getId().equals(user.getId())) {
+                    bindingResult.rejectValue("email", "Duplicate.user.email", "A user with this email already exists");
+                }
+            });
+        }
+        // 3. Require at least one role to be selected
+        if (roleIds == null || roleIds.isEmpty()) {
+            bindingResult.rejectValue("roles", "NotEmpty", "Please select at least one role");
+        }
         if (bindingResult.hasErrors()) {
-            model.addAttribute("allRoles",roleRepository.findAll());
+            // Restore selected roles on the model attribute so checkboxes stay checked
+            user.setRoles(userService.getRolesByIds(roleIds));
+            model.addAttribute("allRoles",userService.getAllRoles());
             return "user-form";
         }
         if (user.getId() == null) {
@@ -62,7 +79,7 @@ public class AdminController {
     public String showEditForm(@PathVariable("id") Long id, Model model) {
         User user = userService.getUserById(id);
         model.addAttribute("user", user);
-        model.addAttribute("allRoles",roleRepository.findAll());
+        model.addAttribute("allRoles",userService.getAllRoles());
         return "user-form";
     }
 

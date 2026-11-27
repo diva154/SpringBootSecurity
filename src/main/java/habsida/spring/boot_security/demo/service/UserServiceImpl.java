@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -53,15 +54,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateUser(User formUser, List<Long> roleIds) {
-        User existingUser = getUserById(formUser.getId());
-        existingUser.setFirstName(formUser.getFirstName());
-        existingUser.setLastName(formUser.getLastName());
-        existingUser.setEmail(formUser.getEmail());
+    public void updateUser(User updatedUser, List<Long> roleIds) {
+        User existingUser = getUserById(updatedUser.getId());
+        existingUser.setFirstName(updatedUser.getFirstName());
+        existingUser.setLastName(updatedUser.getLastName());
+        existingUser.setEmail(updatedUser.getEmail());
 
-        // Keep existing password if left blank in the edit form
-        if (formUser.getPassword() != null && !formUser.getPassword().isBlank()) {
-            existingUser.setPassword(passwordEncoder.encode(formUser.getPassword()));
+        // Keep existing password if left blank; otherwise encode the new one
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
         existingUser.setRoles(resolveRoles(roleIds));
@@ -78,10 +79,25 @@ public class UserServiceImpl implements UserService {
         Set<Role> roles = new HashSet<>();
         if (roleIds != null && !roleIds.isEmpty()) {
             roles.addAll(roleRepository.findAllById(roleIds));
-        } else {
-            roleRepository.findByName("ROLE_USER").ifPresent(roles::add);
         }
         return roles;
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<Role> getRolesByIds(List<Long> roleIds) {
+        return resolveRoles(roleIds);
     }
 }
 

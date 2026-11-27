@@ -4,6 +4,7 @@ import habsida.spring.boot_security.demo.model.Role;
 import habsida.spring.boot_security.demo.model.User;
 import habsida.spring.boot_security.demo.repository.RoleRepository;
 import habsida.spring.boot_security.demo.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,11 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+@Value("${AdminPassword}")
+private String adminPassword;
+
+@Value("${UserPassword}")
+private String userPassword;
 
     public DataInitializer(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -40,7 +46,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setFirstName("Admin");
             admin.setLastName("Admin");
             admin.setEmail("admin@mail.com");
-            admin.setPassword(passwordEncoder.encode("${AdminPassword}"));
+            admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setRoles(Set.of(adminRole, userRole));
             userRepository.save(admin);
         }
@@ -50,7 +56,7 @@ public class DataInitializer implements CommandLineRunner {
                 user.setFirstName("User");
                 user.setLastName("User");
                 user.setEmail("user@mail.com");
-                user.setPassword(passwordEncoder.encode("${UserPassword}"));
+                user.setPassword(passwordEncoder.encode(userPassword));
                 user.setRoles(Set.of(userRole));
                 userRepository.save(user);
             }

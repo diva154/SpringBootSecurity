@@ -21,7 +21,12 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                    .anyRequest().authenticated()
+                        // 1. Most specific rules first: Restrict /admin and all subpaths to ADMIN
+                        .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
+                        // 2. Allow both USER and ADMIN to access /user and its subpaths
+                        .requestMatchers("/user", "/user/**").hasAnyRole("USER", "ADMIN")
+                        // 3. All other endpoints require authentication
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                     .successHandler(successUserHandler)

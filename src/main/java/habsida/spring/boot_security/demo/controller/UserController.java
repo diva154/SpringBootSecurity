@@ -3,6 +3,7 @@ package habsida.spring.boot_security.demo.controller;
 
 import habsida.spring.boot_security.demo.model.User;
 import habsida.spring.boot_security.demo.repository.UserRepository;
+import habsida.spring.boot_security.demo.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,17 +16,17 @@ import java.security.Principal;
 
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping
     public String showUserProfile(Principal principal, Model model) {
-        User currentUser = userRepository.findByEmail(principal.getName())
+        User user = userService.findByEmail(principal.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found:" + principal.getName()));
-        model.addAttribute("user", currentUser);
+        model.addAttribute("user", user);
         return "user";
     }
 }
